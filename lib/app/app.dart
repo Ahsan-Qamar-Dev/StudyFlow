@@ -17,7 +17,7 @@ class StudyFlowApp extends StatelessWidget {
     darkTheme: AppTheme.dark,
     themeMode: Get.find<PreferencesService>().themeMode,
     initialBinding: InitialBinding(),
-    initialRoute: AppRoutes.home,
+    initialRoute: AppRoutes.welcome,
     getPages: AppPages.pages,
   );
 }

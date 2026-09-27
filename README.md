@@ -2,11 +2,15 @@
 
 An Android-first, local-first student planner. The product will help students answer: "What should I study today?"
 
-## Phase 1 scope
+## Current scope: foundation and interactive UI preview
 
 Implemented: Flutter Android project, GetX dependency injection and route registry, light/dark/system themes, persisted theme selection, responsive foundation preview, SQLite schema, versioned migration runner, safe startup error state, and automated tests.
 
-Onboarding, bottom navigation, subjects/tasks/exams UI, focus timer, statistics, planner algorithm, notifications, and ads belong to later phases. The preview is intentionally labeled Phase 1 and contains no fabricated progress or demo study records.
+The UI now includes welcome/personalization, Home, Planner, Add Task/Subject/Exam sheets, a preview focus timer, and Profile with theme controls and sample insights. Sample data is clearly labeled and stays in memory; no sample study records are written to SQLite. Only theme selection persists. Backend integration, real statistics, durable onboarding, planning, notifications, and ads remain deferred at the user's request.
+
+For a browser UI preview without SQLite, run `flutter run -d chrome -t lib/main_preview.dart`. The default Android entry point retains the database foundation.
+
+Validation: widget tests cover light/dark screens, large text, task creation/completion, navigation, and theme selection. Android database integration tests remain unverified because the device disconnected; backend testing was subsequently deferred.
 
 ## Environment and running
 
@@ -23,16 +27,17 @@ flutter build apk --debug
 
 The integration suite uses a separate database named studyflow_foundation_test.db. It never resets studyflow.db. Theme persistence testing saves and restores the original preference.
 
-Android is the configured target. The repositories/services boundary leaves room for future iOS and web implementations, but sqflite is not a web or Windows database implementation.
+Android is the primary target. Web is configured for UI review through the separate preview entry point; sqflite is not a web or Windows database implementation.
 
 ## Architecture
 
 - lib/main.dart: initialize critical local services before rendering the app.
 - lib/app: GetMaterialApp, bindings, routes, theme and shared design tokens.
-- lib/controllers: presentation state, currently theme selection.
+- lib/controllers: theme selection and in-memory preview state.
 - lib/services: SQLite connection and simple device preferences.
 - lib/database: immutable schema v1 and sequential migration runner.
-- lib/views/home: responsive foundation preview.
+- lib/views: welcome, home, planner, focus, and profile preview screens.
+- lib/widgets: shared cards, charts, progress rings, and add forms.
 - test: widget tests.
 - integration_test: Android SQLite and preferences tests.
 
@@ -74,17 +79,18 @@ Tests cover creation, CRUD, reopen persistence, foreign-key enforcement, history
 
 ## Design
 
-Warm white and charcoal with soft lime highlights; rounded cards, readable typography and roomy layouts inspired by the supplied reference. The shared theme supports light, dark and system modes. Feature animations and data visualizations will be built alongside their real state in later phases.
+Warm white and charcoal with soft lime highlights; rounded cards, readable typography and roomy layouts inspired by the supplied reference. The shared theme supports light, dark and system modes. The preview includes animated progress rings, sample weekly charts, and screen transitions.
 
 ## Manual Phase 1 check
 
-1. Run on Android and confirm the StudyFlow foundation preview appears.
-2. Switch Light, Dark and System.
+1. Run the app and choose Explore the preview from the welcome screen.
+2. Open Profile and switch Light, Dark and System.
 3. Close and reopen the app; the selected theme should remain.
 4. In System mode, change the device appearance and confirm the app follows it.
 5. Try a narrow screen and larger system text; content should scroll without clipping.
-6. Reopen in airplane mode; the preview and theme switching should still work.
-7. Run the Android integration suite for database checks (CRUD screens arrive in Phase 3).
+6. Use Add to create a preview task, then check it off in Planner. Preview entries reset on restart.
+7. Open Focus, start/pause the timer, and navigate between tabs. Preview sessions are not saved.
+8. Reopen the Android app in airplane mode; the preview and theme switching should still work.
 
 ## Privacy and release status
 

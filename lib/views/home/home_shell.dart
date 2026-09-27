@@ -2,127 +2,198 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../app/theme/design_tokens.dart';
-import '../../controllers/theme_controller.dart';
+import '../../controllers/preview_controller.dart';
+import '../../widgets/add_sheet.dart';
+import '../focus/focus_page.dart';
+import '../planner/planner_page.dart';
+import '../profile/profile_page.dart';
+import 'home_page.dart';
 
 class HomeShell extends StatelessWidget {
   const HomeShell({super.key});
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final controller = Get.find<ThemeController>();
+    final c = Get.find<PreviewController>();
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: ListView(
-              padding: const EdgeInsets.all(24),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: SafeArea(
+            child: Column(
               children: [
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: DesignTokens.lime,
-                        borderRadius: BorderRadius.circular(16),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.blur_on_rounded,
+                        size: 17,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                      child: const Icon(
-                        Icons.auto_stories_rounded,
-                        color: DesignTokens.charcoal,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'StudyFlow',
-                        style: theme.textTheme.titleLarge?.copyWith(
+                      const SizedBox(width: 7),
+                      Text(
+                        'STUDYFLOW',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          letterSpacing: 2,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                Text(
-                  'A little focus.\nA brighter tomorrow.',
-                  style: theme.textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    height: 1.15,
-                    letterSpacing: -1,
+
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: dark
+                              ? const Color(0xFF303830)
+                              : const Color(0xFFE8ECE0),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'UI preview · sample data',
+                          style: TextStyle(fontSize: 9),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Your own space to learn, one step at a time.',
-                  style: theme.textTheme.bodyLarge,
+                Expanded(
+                  child: Obx(
+                    () => AnimatedSwitcher(
+                      duration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : DesignTokens.motion,
+                      switchInCurve: Curves.easeOutCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween(
+                            begin: const Offset(0, .035),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        key: ValueKey(c.tab.value),
+                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                        child: switch (c.tab.value) {
+                          1 => const PlannerPage(),
+                          3 => const FocusPage(),
+                          4 => const ProfilePage(),
+                          _ => const HomePage(),
+                        },
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 32),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 7,
+                    horizontal: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant
+                          .withValues(alpha: .35),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: .035),
+                        blurRadius: 20,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Obx(
+                    () => Row(
                       children: [
-                        const Icon(Icons.spa_outlined, size: 40),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Room to grow',
-                          style: theme.textTheme.headlineSmall,
+                        _item(context, c, 0, 'Home', Icons.grid_view_rounded),
+                        _item(
+                          context,
+                          c,
+                          1,
+                          'Planner',
+                          Icons.calendar_today_outlined,
                         ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Your study space is ready. Subjects, daily plans, and focus sessions will arrive in the next development phases.',
+                        Expanded(
+                          child: Center(
+                            child: IconButton.filled(
+                              style: IconButton.styleFrom(
+                                backgroundColor: DesignTokens.lime,
+                                foregroundColor: DesignTokens.charcoal,
+                                minimumSize: const Size(50, 50),
+                              ),
+                              tooltip: 'Add',
+                              onPressed: () => showAddSheet(context),
+                              icon: const Icon(Icons.add),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 24),
-                        const Row(
-                          children: [
-                            Icon(Icons.offline_bolt_outlined, size: 20),
-                            SizedBox(width: 8),
-                            Expanded(child: Text('Built to work offline')),
-                          ],
+                        _item(context, c, 3, 'Focus', Icons.timelapse_rounded),
+                        _item(
+                          context,
+                          c,
+                          4,
+                          'Profile',
+                          Icons.person_outline_rounded,
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 28),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _item(
+    BuildContext context,
+    PreviewController c,
+    int index,
+    String label,
+    IconData icon,
+  ) {
+    final selected = c.tab.value == index;
+    return Expanded(
+      child: Semantics(
+        selected: selected,
+        button: true,
+        label: label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => c.tab.value = index,
+          child: AnimatedContainer(
+            duration: DesignTokens.motion,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: selected
+                  ? Theme.of(context).colorScheme.surfaceContainerHigh
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 21),
+                const SizedBox(height: 5),
                 Text(
-                  'Make it feel like you',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
-                Obx(
-                  () => Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: ThemeMode.values
-                        .map(
-                          (mode) => ChoiceChip(
-                            avatar: Icon(switch (mode) {
-                              ThemeMode.system =>
-                                Icons.brightness_auto_outlined,
-                              ThemeMode.light => Icons.light_mode_outlined,
-                              ThemeMode.dark => Icons.dark_mode_outlined,
-                            }, size: 18),
-                            label: Text(switch (mode) {
-                              ThemeMode.system => 'System',
-                              ThemeMode.light => 'Light',
-                              ThemeMode.dark => 'Dark',
-                            }),
-                            selected: controller.mode.value == mode,
-                            onSelected: controller.saving.value
-                                ? null
-                                : (_) => controller.select(mode),
-                          ),
-                        )
-                        .toList(),
+                  label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
                   ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Foundation preview · Phase 1',
-                  style: theme.textTheme.labelMedium,
                 ),
               ],
             ),
